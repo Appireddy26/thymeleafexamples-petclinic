@@ -1,48 +1,24 @@
-//pipeline {
- //   agent any
- //   tools {
- //      maven 'M2_HOME'
- //      jdk 'JAVA_HOME'
- //   }
- //   stages {
- //       stage ('Initialize') {
- //           steps {
- //               sh '''
- //                   echo "PATH = ${PATH}"
- //                   echo "M2_HOME = ${M2_HOME}"
- //                   echo "PATH = ${PATH}"
- //                   echo "JAVA_HOME = ${JAVA_HOME}"
- //               '''
- //           }
- //       }
- //
- //       stage ('Build') {
- //           steps {
- //               sh 'mvn -Dmaven.test.failure.ignore=true install' 
- //           }
- //           post {
- //               success {
- //                   junit 'target/surefire-reports/**/*.xml' 
- //               }
- //           }
- //       }
- //   }
-//}
-
 pipeline {
     agent any
+    tools {
+        maven 'maven'
+    }
+
     stages {
-        stage ('Build') {
-            steps {
-                sh 'mvn -Dmaven.test.failure.ignore=true install' 
-            }
-            post {
-                success {
-                    junit 'target/surefire-reports/**/*.xml' 
         
-		        }
-		  }
-	}
+        stage ('build') {
+            steps {
+                sh 'mvn clean package'
+            }
+            
+        }
+        stage('deploy') {
+            steps {
+                sshagent(['tomcatcred']) {
+    sh 'scp -o StrictHostKeyChecking=no target/petclinic.war ubuntu@35.90.139.3:/opt/apache-tomcat-8.5.81/webapps'
+}
+                
+            }
+        }
     }
 }
-
